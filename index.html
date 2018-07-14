@@ -14,19 +14,19 @@
 	<script>
 		"use strict";
 
-		function select(cell) {
+		function select(cell, length) {
 			var $this = jQuery(cell);
-			var selection = jQuery("#board tbody").children("tr").find("td");
+			var selection = $this.parents("table").find("td");
 
 			if ($this.index() == 0) {
 				if ($this.parents("thead").length != 0) {
 					selection = selection.filter(function (index, element) {
-						return (index % 6 == 0);
+						return (index % (length + 1) == 0);
 					});
 				}
 				else if ($this.parents("tfoot").length != 0) {
 					selection = selection.filter(function (index, element) {
-						return (index != 0 && index != 24 && index % 4 == 0);
+						return index >= (length - 1) && index <= (selection.length - length) && (index % (length - 1) == 0);
 					});
 				}
 				else {
@@ -34,8 +34,8 @@
 				}
 			}
 			else {
-				let index = $this.index() + 1;
-				selection = selection.filter(":nth-child(" + index + ")");
+				let nth = $this.index() + 1;
+				selection = selection.filter(":nth-child(" + nth + ")");
 			}
 
 			return selection;
@@ -47,20 +47,22 @@
 				// Setup Board
 				{
 					let tokens = data.split(/\n|,/);
-					let size = $("#board thead th").length - 1;
+					var length = $("table thead th").length - 1;
 					{
-						let center = (size * size - 1) / 2;
+						let size = length * length;
+						let center = (size - 1) / 2;
 						let freeSpace = tokens.splice(center, 1);
 						tokens.sort(function (a, b) {
 							return (Math.random() * 2) - 1;
 						});
 						tokens.splice(center, 0, freeSpace);
+						tokens = tokens.slice(0, size);
 					}
-					let body = $("#board tbody");
-					for (let y = 0; y < size; y++) {
+					let body = $("table tbody");
+					for (let y = 0; y < length; y++) {
 						let row = "<tr>" + "<th>" + (y + 1) + "</th>";
-						for (let x = 0; x < size; x++) {
-							let entry = "<td>" + tokens[y * size + x] + "</td>";
+						for (let x = 0; x < length; x++) {
+							let entry = "<td>" + tokens[y * length + x] + "</td>";
 							row += entry;
 						}
 						row += "</tr>";
@@ -71,14 +73,14 @@
 				//Setup event listeners
 				$("th")
 					.hover(function () {
-						var selection = select(this);
+						var selection = select(this, length);
 						if (selection != undefined) {
 							selection.toggleClass("hover");
 						}
 						$(this).toggleClass("hover");
 					})
 					.click(function () {
-						var selection = select(this);
+						var selection = select(this, length);
 						if (selection != undefined) {
 							let unmarkAll = (selection.filter(".marked").length == selection.length);
 							selection.each(function (index, element) {
@@ -124,7 +126,7 @@
 			color: wheat;
 		}
 
-		#board {
+		table {
 			width: 750px;
 			height: 750px;
 			margin: 0px auto;
@@ -157,7 +159,7 @@
 
 <body>
 	<h1>Bingo</h1>
-	<table id="board">
+	<table>
 		<thead>
 			<th>0</th>
 			<th>1</th>
