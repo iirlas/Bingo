@@ -1,16 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<title>Bingo</Title>
-	<meta charset="UTF-8"/>
+	<meta charset="UTF-8" />
 
 	<!-- If IE use the latest rendering engine -->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
 	<!-- Set the page to the width of the device and set the zoom level -->
-	<meta name="viewport" content="width = device-width, initial-scale = 1"/>
+	<meta name="viewport" content="width = device-width, initial-scale = 1" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script>
+		"use strict";
+
+		function select(cell) {
+			var $this = jQuery(cell);
+			var selection = jQuery("#board tbody").children("tr").find("td");
+
+			if ($this.index() == 0) {
+				if ($this.parents("thead").length != 0) {
+					selection = selection.filter(function (index, element) {
+						return (index % 6 == 0);
+					});
+				}
+				else if ($this.parents("tfoot").length != 0) {
+					selection = selection.filter(function (index, element) {
+						return (index != 0 && index != 24 && index % 4 == 0);
+					});
+				}
+				else {
+					selection = $this.parent().children("td");
+				}
+			}
+			else {
+				let index = $this.index() + 1;
+				selection = selection.filter(":nth-child(" + index + ")");
+			}
+
+			return selection;
+		}
+
+		jQuery(function ($) {
+			var url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXcWmtHUiRwEKAIqCggzDHQwGPDluZAwkrYz9s4Aku4_GmD--sWpolk2gxKskOHhNDfFpOl2cepmrU/pub?gid=0&single=true&output=csv";
+			$.get(url, function (data) {
+				// Setup Board
+				{
+					let tokens = data.split(/\n|,/);
+					let size = $("#board thead th").length - 1;
+					{
+						let center = (size * size - 1) / 2;
+						let freeSpace = tokens.splice(center, 1);
+						tokens.sort(function (a, b) {
+							return (Math.random() * 2) - 1;
+						});
+						tokens.splice(center, 0, freeSpace);
+					}
+					let body = $("#board tbody");
+					for (let y = 0; y < size; y++) {
+						let row = "<tr>" + "<th>" + (y + 1) + "</th>";
+						for (let x = 0; x < size; x++) {
+							let entry = "<td>" + tokens[y * size + x] + "</td>";
+							row += entry;
+						}
+						row += "</tr>";
+						body.append(row);
+					}
+				}
+
+				//Setup event listeners
+				$("th")
+					.hover(function () {
+						var selection = select(this);
+						if (selection != undefined) {
+							selection.toggleClass("hover");
+						}
+						$(this).toggleClass("hover");
+					})
+					.click(function () {
+						var selection = select(this);
+						if (selection != undefined) {
+							let unmarkAll = (selection.filter(".marked").length == selection.length);
+							selection.each(function (index, element) {
+								if (unmarkAll) {
+									$(element).removeClass("marked");
+								}
+								else {
+									$(element).addClass("marked");
+								}
+							});
+						}
+					});
+
+				$("td")
+					.hover(function () {
+						$(this).toggleClass("hover");
+					})
+					.click(function () {
+						$(this).toggleClass("marked");
+					});
+			});
+		});
+	</script>
+	<style type="text/css">
+		html {
+			height: 100%;
+			background: lightyellow;
+			background: repeating-linear-gradient(45deg,
+			rgba(255, 255, 224, 0.5), rgba(255, 255, 224, 0.5) 30%,
+			rgba(0, 0, 255, 0.5), rgba(0, 0, 255, 0.5) 60%,
+			rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) 100%),
+			repeating-linear-gradient(-45deg,
+			red, red 50%,
+			green, green 100%);
+		}
+
+		body {
+			text-align: center;
+		}
+
+		h1 {
+			user-select: none;
+			color: wheat;
+		}
+
+		#board {
+			width: 750px;
+			height: 750px;
+			margin: 0px auto;
+			border-collapse: collapse;
+		}
+
+		th,
+		td {
+			color: wheat;
+			background: rgba(0, 0, 0, 0.5);
+			border: 1px solid white;
+			user-select: none;
+			min-width: 20px;
+			max-width: 146px;
+		}
+
+		.hover {
+			background: rgba(0, 255, 255, 0.25);
+		}
+
+		.marked {
+			background: rgba(0, 0, 255, 0.75);
+		}
+
+		.marked.hover {
+			background: rgba(0, 128, 255, 0.5);
+		}
+	</style>
 </head>
+
 <body>
-	<!-- content -->
+	<h1>Bingo</h1>
+	<table id="board">
+		<thead>
+			<th>0</th>
+			<th>1</th>
+			<th>2</th>
+			<th>3</th>
+			<th>4</th>
+			<th>5</th>
+		</thead>
+		<tbody>
+			<!-- content -->
+		</tbody>
+		<tfoot>
+			<th>0</th>
+		</tfoot>
+	</table>
 </body>
+
 </html>
