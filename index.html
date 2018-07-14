@@ -26,7 +26,7 @@
 				}
 				else if ($this.parents("tfoot").length != 0) {
 					selection = selection.filter(function (index, element) {
-						return index >= (length - 1) && index <= (selection.length - length) && (index % (length - 1) == 0);
+						return (index >= (length - 1)) && (index <= (selection.length - length)) && (index % (length - 1) == 0);
 					});
 				}
 				else {
@@ -72,12 +72,18 @@
 
 				//Setup event listeners
 				$("th")
-					.hover(function () {
+					.hover(function (event) {
 						var selection = select(this, length);
-						if (selection != undefined) {
-							selection.toggleClass("hover");
+						switch (event.type) {
+							case "mouseenter":
+								selection.addClass("hover");
+								$(this).addClass("hover");
+								break;
+							case "mouseleave":
+								selection.removeClass("hover");
+								$(this).removeClass("hover");
+								break;
 						}
-						$(this).toggleClass("hover");
 					})
 					.click(function () {
 						var selection = select(this, length);
@@ -95,8 +101,15 @@
 					});
 
 				$("td")
-					.hover(function () {
-						$(this).toggleClass("hover");
+					.hover(function (event) {
+						switch (event.type) {
+							case "mouseenter":
+								$(this).addClass("hover");
+								break;
+							case "mouseleave":
+								$(this).removeClass("hover");
+								break;
+						}
 					})
 					.click(function () {
 						$(this).toggleClass("marked");
